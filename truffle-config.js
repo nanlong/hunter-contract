@@ -82,7 +82,7 @@ module.exports = {
       skipDryRun: true
     },
     Bsc: {
-      provider: () => new HDWalletProvider(mnemonic, 'https://bsc-dataseed.binance.org'),
+      provider: () => new HDWalletProvider(mnemonic, 'https://hunter:feilong1993@apis.ankr.com/729f59d79b4145ea9452e1cbd4229032/c5c12f3496ec6f25f58c1bb6743cbbb1/binance/full/main'),
       network_id: 56,
       gas: 5500000,
       gasPrice: 5000000000,

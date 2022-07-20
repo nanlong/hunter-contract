@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
-contract Api {
+contract Fetcher {
     using Address for address;
 
     struct Coin {
@@ -19,6 +19,7 @@ contract Api {
     }
 
     struct Pair {
+        address factory;
         address addr;
         address token0;
         address token1;
@@ -179,6 +180,7 @@ contract Api {
 
     function getPair(address addr) private view returns (Pair memory pair) {
         pair.addr = addr;
+        pair.factory = IUniswapV2Pair(pair.addr).factory();
         pair.token0 = IUniswapV2Pair(pair.addr).token0();
         pair.token1 = IUniswapV2Pair(pair.addr).token1();
         (pair.reserve0, pair.reserve1, ) = IUniswapV2Pair(pair.addr)

@@ -1,4 +1,4 @@
-const Api = artifacts.require("Api");
+const Fetcher = artifacts.require("Fetcher");
 const Hunter = artifacts.require("Hunter");
 
 const toAmount = function (amount, decimals) {
@@ -8,7 +8,7 @@ const toAmount = function (amount, decimals) {
 module.exports = async function (deployer, network) {
   switch (network) {
     case 'Bsc':
-      await deployer.deploy(Api);
+      // await deployer.deploy(Fetcher);
       await deployer.deploy(Hunter);
       break;
 

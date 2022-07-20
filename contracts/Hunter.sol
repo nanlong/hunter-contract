@@ -45,13 +45,44 @@ contract Hunter is Ownable {
         }
     }
 
-    /***
-    交易对例子: HUSD-CAN CAN-WHT WHT-MFD MFD-HUSD
+    function checkFlashArbitrage(
+        uint256 amountIn,
+        address tokenIn,
+        address[] memory pairs,
+        uint256[] memory pairsFee
+    )
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256[] memory reserve0,
+            uint256[] memory reserve1
+        )
+    {
+        CallbackData memory callbackData = genCallbackData(
+            amountIn,
+            tokenIn,
+            pairs,
+            pairsFee
+        );
 
-    1. 套利合约从尾部交易对借款usdt
-    2. 套利合约开始从第一个交易对开始交易，留下利润
-    3. 循环交易直至完成
-    ***/
+        reserve0 = new uint256[](pairs.length);
+        reserve1 = new uint256[](pairs.length);
+
+        for (uint256 i = 0; i < pairs.length; i++) {
+            (reserve0[i], reserve1[i], ) = IUniswapV2Pair(pairs[i])
+                .getReserves();
+        }
+
+        return (
+            callbackData.amountIn,
+            callbackData.amountOut,
+            reserve0,
+            reserve1
+        );
+    }
+
     function flashArbitrage(
         uint256 blockNumber,
         uint256 amountIn,
@@ -167,13 +198,13 @@ contract Hunter is Ownable {
         uint256 reserveOut,
         uint256 fee
     ) internal pure returns (uint256 amountOut) {
-        require(amountIn > 0, "UniswapV2Library: INSUFFICIENT_INPUT_AMOUNT");
+        require(amountIn > 0, "Hunter: INSUFFICIENT_INPUT_AMOUNT");
         require(
             reserveIn > 0 && reserveOut > 0,
-            "UniswapV2Library: INSUFFICIENT_LIQUIDITY"
+            "Hunter: INSUFFICIENT_LIQUIDITY"
         );
         uint256 d = 10000;
-        uint256 amountInWithFee = amountIn.mul(d - fee);
+        uint256 amountInWithFee = amountIn.mul(fee);
         uint256 numerator = amountInWithFee.mul(reserveOut);
         uint256 denominator = reserveIn.mul(d).add(amountInWithFee);
         amountOut = numerator / denominator;
