@@ -99,13 +99,13 @@ contract Hunter is Ownable {
         );
         require(callbackData.amountOut > callbackData.amountIn, "1");
 
-        uint256 i = pairs.length - 1;
+        uint256 last = pairs.length - 1;
 
-        _permissionedPairAddress = pairs[i];
+        _permissionedPairAddress = pairs[last];
 
-        IUniswapV2Pair(pairs[i]).swap(
-            callbackData.amount0Outs[i],
-            callbackData.amount1Outs[i],
+        IUniswapV2Pair(pairs[last]).swap(
+            callbackData.amount0Outs[last],
+            callbackData.amount1Outs[last],
             address(this),
             abi.encode(callbackData)
         );
@@ -203,10 +203,9 @@ contract Hunter is Ownable {
             reserveIn > 0 && reserveOut > 0,
             "Hunter: INSUFFICIENT_LIQUIDITY"
         );
-        uint256 d = 10000;
         uint256 amountInWithFee = amountIn.mul(fee);
         uint256 numerator = amountInWithFee.mul(reserveOut);
-        uint256 denominator = reserveIn.mul(d).add(amountInWithFee);
-        amountOut = numerator / denominator;
+        uint256 denominator = reserveIn.mul(100000).add(amountInWithFee);
+        amountOut = numerator / denominator - 1;
     }
 }
