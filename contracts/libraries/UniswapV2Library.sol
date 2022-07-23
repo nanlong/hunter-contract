@@ -9,46 +9,39 @@ library UniswapV2Library {
     using SafeMath for uint256;
 
     function getPairAmountOut(
-        address tokenOut,
+        address tokenIn,
         address pair,
         uint256 fee,
         uint256 reserve0,
         uint256 reserve1
-    ) internal view returns (uint256 amountOut) {
+    )
+        internal
+        view
+        returns (
+            address tokenOut,
+            uint256 amount0Out,
+            uint256 amount1Out
+        )
+    {
         IUniswapV2Pair pairContract = IUniswapV2Pair(pair);
-        uint256 balance;
+        address token0 = pairContract.token0();
+        address token1 = pairContract.token1();
+        uint256 balance0 = IERC20(token0).balanceOf(pair);
+        uint256 balance1 = IERC20(token1).balanceOf(pair);
         uint256 amountIn;
 
-        if (tokenOut == pairContract.token0()) {
-            balance = IERC20(pairContract.token1()).balanceOf(pair);
-            amountIn = balance.sub(reserve1);
-            amountOut = getAmountOut(amountIn, reserve1, reserve0, fee);
-        } else {
-            balance = IERC20(pairContract.token0()).balanceOf(pair);
-            amountIn = balance.sub(reserve0);
-            amountOut = getAmountOut(amountIn, reserve0, reserve1, fee);
-        }
-    }
-
-    function getPiarAmountOut(
-        address pair,
-        uint256 fee,
-        uint256 reserve0,
-        uint256 reserve1
-    ) internal view returns (uint256 amount0Out, uint256 amount1Out) {
-        IUniswapV2Pair pairContract = IUniswapV2Pair(pair);
-        uint256 balance = IERC20(pairContract.token0()).balanceOf(pair);
-        uint256 amountIn;
-
-        if (balance == reserve0) {
-            balance = IERC20(pairContract.token1()).balanceOf(pair);
-            amountIn = balance.sub(reserve1);
+        if (tokenIn == token0 && balance0 > reserve0) {
+            tokenOut = token1;
+            amountIn = balance0.sub(reserve0);
+            amount0Out = uint256(0);
+            amount1Out = getAmountOut(amountIn, reserve0, reserve1, fee);
+        } else if (tokenIn == token1 && balance1 > reserve1) {
+            tokenOut = token0;
+            amountIn = balance1.sub(reserve1);
             amount1Out = uint256(0);
             amount0Out = getAmountOut(amountIn, reserve1, reserve0, fee);
         } else {
-            amountIn = balance.sub(reserve0);
-            amount0Out = uint256(0);
-            amount1Out = getAmountOut(amountIn, reserve0, reserve1, fee);
+            revert("!1");
         }
     }
 
@@ -88,7 +81,7 @@ library UniswapV2Library {
         address[] memory path,
         uint256[] memory fees
     ) internal view returns (uint256[] memory amountOuts) {
-        require(path.length >= 2, "UniswapV2Library: INVALID_PATH");
+        require(path.length >= 2, "!2");
         uint256 amountOut;
         address[] memory tokenIns = new address[](path.length);
         uint256[] memory amountIns = new uint256[](path.length);
@@ -147,11 +140,8 @@ library UniswapV2Library {
         uint256 reserveOut,
         uint256 fee
     ) internal pure returns (uint256 amountOut) {
-        require(amountIn > 0, "UniswapV2Library: INSUFFICIENT_INPUT_AMOUNT");
-        require(
-            reserveIn > 0 && reserveOut > 0,
-            "UniswapV2Library: INSUFFICIENT_LIQUIDITY"
-        );
+        require(amountIn > 0, "!3");
+        require(reserveIn > 0 && reserveOut > 0, "!4");
         uint256 amountInWithFee = amountIn.mul(fee);
         uint256 numerator = amountInWithFee.mul(reserveOut);
         uint256 denominator = reserveIn.mul(100000).add(amountInWithFee);
